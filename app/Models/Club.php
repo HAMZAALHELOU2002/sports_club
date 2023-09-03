@@ -14,6 +14,10 @@ class Club extends Authenticatable implements JWTSubject
     use HasApiTokens, HasFactory, Notifiable;
     protected $guarded=[''];
 
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
     public function users()
     {
         return $this->belongsTo(User::class, 'club_id', 'id');

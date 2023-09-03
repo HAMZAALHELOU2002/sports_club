@@ -13,18 +13,20 @@ class Product extends Model
     public $translatable =['name'];
     protected $guarded = [''];
 
+    public function club()
+    {
+        return $this->belongsTo(Club::class);
+
+    }
 
     public function productType()
     {
-        return $this->belongsTo(ProductType::class,'product_types_id','id');
+        return $this->belongsTo(ProductType::class, 'product_types_id', 'id');
     }
 
     public function images()
     {
         return $this->morphMany('App\Models\Image', 'imageable');
     }
-    public function club()
-    {
-        return $this->belongsTo(Club::class, 'center_id');
-    }
+
 }
