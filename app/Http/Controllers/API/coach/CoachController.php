@@ -86,9 +86,10 @@ class CoachController extends Controller
 
             $coach->save();
             if ($request->hasfile('image_path')) {
-                $coach_image = $this->saveImage($request->image_path, 'attachments/coachs/'.Auth::user()->club_id.'/' . $coach->id);
+                $coach_image = $this->saveImage($request->image_path, 'attachments/coachs/'.$coach->club_id.'/' . $coach->id);
                 $coach->image_path = $coach_image;
                 $coach->save();
+                $coach->image_path = url('attachments/coachs/'.$coach->club_id.'/'.$coach->id.'/'. $coach->image_path);
             }
             DB::commit();  // insert data
             $token = auth('api_coach')->login($coach);

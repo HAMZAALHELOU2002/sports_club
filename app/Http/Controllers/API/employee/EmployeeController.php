@@ -82,9 +82,11 @@ class EmployeeController extends Controller
             $employee->save();
 
             if ($request->hasfile('image_path')) {
-                $employee_image = $this->saveImage($request->image_path, 'attachments/employees/' .Auth::user()->club_id.'/'. $employee->id);
+                $employee_image = $this->saveImage($request->image_path, 'attachments/employees/' .$employee->club_id.'/'. $employee->id);
                 $employee->image_path = $employee_image;
                 $employee->save();
+                $employee->image_path = url('attachments/employees/' . $employee->club_id . '/' . $employee->id . '/' . $employee->image_path);
+
             }
             DB::commit();  // insert data
 

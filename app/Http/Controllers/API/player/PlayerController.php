@@ -102,9 +102,10 @@ class PlayerController extends Controller
 
             $player->save();
             if ($request->hasfile('image_path')) {
-                $player_image = $this->saveImage($request->image_path, 'attachments/players/' .Auth::user()->club_id.'/'. $player->id);
+                $player_image = $this->saveImage($request->image_path, 'attachments/players/' .$player->club_id.'/'. $player->id);
                 $player->image_path = $player_image;
                 $player->save();
+                $player->image_path = url('attachments/players/'.$player->club_id.'/'.$player->id.'/'. $player->image_path);
             }
             DB::commit();  // insert data
             $token = auth('api_player')->login($player);
