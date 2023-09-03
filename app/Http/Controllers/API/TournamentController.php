@@ -19,8 +19,8 @@ class TournamentController extends Controller
 use GeneralTrait;
     public function index()
     {
-        $professions = Tournament::where('club_id',Auth::user()->club_id)->get();
-        return response()->json($professions);
+        $Tournaments = Tournament::where('club_id',Auth::user()->club_id)->with('club','player','coach','Prize','ChampionshipLevel','tournamentType')->get();
+        return response()->json($Tournaments);
     }
     public function store(StoreTournamentRequest $request)
     {
@@ -87,7 +87,7 @@ use GeneralTrait;
     public function show(Request $request)
     {
         #to check if id found
-        $tournament = Tournament::where('club_id',Auth::user()->club_id)->find($request->id);
+        $tournament = Tournament::where('club_id',Auth::user()->club_id)->with('club','player','coach','Prize','ChampionshipLevel','tournamentType')->find($request->id);
         if(!$tournament){
             return response()->json([
                 'status' => 'Error',
@@ -96,7 +96,7 @@ use GeneralTrait;
             ], ResponseAlias::HTTP_NOT_FOUND);
         }
 
-            return response()->json([
+        return response()->json([
                 'status'=>true,
                 'message'=>'update Tournament',
                 'data'=>$tournament

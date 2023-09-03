@@ -14,7 +14,10 @@ class Coach extends Authenticatable implements JWTSubject
     use HasFactory;
     protected $table='coachs';
     protected $guarded = [''];
-
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
     public function getJWTIdentifier() {
         return $this->getKey();
     }
@@ -60,7 +63,7 @@ class Coach extends Authenticatable implements JWTSubject
 
     public function club()
     {
-        return $this->belongsTo(Club::class, 'center_id');
+        return $this->belongsTo(Club::class);
     }
 
     #many to many

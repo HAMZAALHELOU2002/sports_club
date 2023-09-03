@@ -23,8 +23,13 @@ class EmployeeController extends Controller
     public function index()
     {
 
-        $employee =Employe::where('club_id',Auth::user()->club_id)->get();
-        return response()->json($employee);
+        $employees =Employe::where('club_id',Auth::user()->club_id)->with('club','section')->get();
+        $playersWithUrls = $employees->map(function ($employee) {
+            if ($employee->image_path !== null)
+                $employee->image_path = url('attachments/employees/' . $employee->club_id . '/' . $employee->id . '/' . $employee->image_path);
+            return $employee;
+        });
+        return response()->json($playersWithUrls);
     }
     public function store(StoreEmployeeRequest $request):  JsonResponse
     {
@@ -60,6 +65,8 @@ class EmployeeController extends Controller
                 $employee_image = $this->saveImage($request->image_path, 'attachments/employees/' .Auth::user()->club_id.'/'. $employee->id);
                 $employee->image_path = $employee_image;
                 $employee->save();
+                $employee->image_path = url('attachments/employees/' . $employee->club_id . '/' . $employee->id . '/' . $employee->image_path);
+
             }
             DB::commit();  // insert data
 
@@ -79,7 +86,7 @@ class EmployeeController extends Controller
     public function show(Request $request)
     {
         try {
-            $employee = Employe::where('club_id',Auth::user()->club_id)->find($request->id);
+            $employee = Employe::where('club_id',Auth::user()->club_id)->with('club','section')->find($request->id);
             if(!$employee)
             {
                 return response()->json([
@@ -88,6 +95,9 @@ class EmployeeController extends Controller
                     'message' => 'Employee not found'
                 ], ResponseAlias::HTTP_NOT_FOUND);
             }
+            if ($employee->image_path !== null)
+                $employee->image_path = url('attachments/employees/' . $employee->club_id . '/' . $employee->id . '/' . $employee->image_path);
+
             return response()->json($employee);
 
         } catch (\Throwable $ex) {
@@ -146,6 +156,7 @@ class EmployeeController extends Controller
                 $employee_image = $this->saveImage($request->image_path, 'attachments/employees/' .Auth::user()->club_id.'/'. $employee->id);
                 $employee->image_path = $employee_image;
                 $employee->save();
+                $employee->image_path = url('attachments/employees/' . $employee->club_id . '/' . $employee->id . '/' . $employee->image_path);
             }
             DB::commit();  // insert data
 

@@ -15,7 +15,10 @@ class Employe extends Authenticatable implements JWTSubject
     protected $table='employes';
 
     protected $guarded = [''];
-
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
     /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *
@@ -38,6 +41,6 @@ class Employe extends Authenticatable implements JWTSubject
     }
     public function club()
     {
-        return $this->belongsTo(Club::class, 'center_id');
+        return $this->belongsTo(Club::class);
     }
 }

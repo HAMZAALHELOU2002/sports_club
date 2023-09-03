@@ -30,9 +30,9 @@ class StoreFoodRequest extends FormRequest
             'name_en' => 'required|string',
             'foodsystem_id'         => 'required|integer',
             'number'         => 'required|integer',
-            'start_time'         => 'required|date',
-            'end_time'         => 'required|date',
-            'description'         => 'required|string',
+            'start_time'         => 'date',
+            'end_time'         => 'date',
+            'description'         => 'string',
             'components_of_the_diet'         => 'string'
         ];
     }

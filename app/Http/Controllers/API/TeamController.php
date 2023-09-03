@@ -18,10 +18,16 @@ class TeamController extends Controller
 {
     use GeneralTrait;
     use imageTrait;
+
     public function index()
     {
-        $invoices = Team::where('club_id',Auth::user()->club_id)->get();
-        return response()->json($invoices);
+        $teams = Team::where('club_id', Auth::user()->club_id)->with('club', 'player', 'coach')->get();
+        $playersWithUrls = $teams->map(function ($team) {
+            if ($team->image_path !== null)
+                $team->image_path = url('attachments/teams/' . $team->club_id . '/' . $team->id . '/' . $team->image_path);
+            return $team;
+        });
+        return response()->json($playersWithUrls);
     }
 
     public function store(StoreTeamRequest $request)
@@ -29,24 +35,22 @@ class TeamController extends Controller
         DB::beginTransaction();
         try {
             #to check if id found
-            if(isset($request->player_id)) {
-                $Player = Player::where('club_id',Auth::user()->club_id)->find($request->player_id);
-                if(!$Player)
-                {
+            if (isset($request->player_id)) {
+                $Player = Player::where('club_id', Auth::user()->club_id)->find($request->player_id);
+                if (!$Player) {
                     return response()->json([
                         'status' => 'Error',
-                        'status_code'=>ResponseAlias::HTTP_NOT_FOUND,
+                        'status_code' => ResponseAlias::HTTP_NOT_FOUND,
                         'message' => 'player id not found'
                     ], ResponseAlias::HTTP_NOT_FOUND);
                 }
             }
-            if(isset($request->coach_id)) {
-                $coach = Coach::where('club_id',Auth::user()->club_id)->find($request->coach_id);
-                if(!$coach)
-                {
+            if (isset($request->coach_id)) {
+                $coach = Coach::where('club_id', Auth::user()->club_id)->find($request->coach_id);
+                if (!$coach) {
                     return response()->json([
                         'status' => 'Error',
-                        'status_code'=>ResponseAlias::HTTP_NOT_FOUND,
+                        'status_code' => ResponseAlias::HTTP_NOT_FOUND,
                         'message' => 'coach id id not found'
                     ], ResponseAlias::HTTP_NOT_FOUND);
                 }
@@ -60,17 +64,18 @@ class TeamController extends Controller
             $team->team_member = $request->team_member;
             $team->save();
             if ($request->hasfile('image_path')) {
-                $_image = $this->saveImage($request->image_path, 'attachments/teams/' .Auth::user()->club_id.'/'. $team->id);
+                $_image = $this->saveImage($request->image_path, 'attachments/teams/' . Auth::user()->club_id . '/' . $team->id);
                 $team->image_path = $_image;
                 $team->save();
+                $team->image_path = url('attachments/teams/' . $team->club_id . '/' . $team->id . '/' . $team->image_path);
             }
             //important to update player
-            if(isset($request->player_id)) {
+            if (isset($request->player_id)) {
 //            dd("hgyhg");
                 $team->player()->syncWithoutDetaching($request->player_id);
             }
             //important to update coach
-            if(isset($request->coach_id)) {
+            if (isset($request->coach_id)) {
                 $team->coach()->syncWithoutDetaching($request->coach_id);
             }
 
@@ -78,9 +83,9 @@ class TeamController extends Controller
             DB::commit();  // insert data
 
             return response()->json([
-                'status'=>true,
-                'message'=>'created $team successfully',
-                'data'=>$team
+                'status' => true,
+                'message' => 'created $team successfully',
+                'data' => $team
             ]);
 
         } catch (\Throwable $ex) {
@@ -94,32 +99,30 @@ class TeamController extends Controller
         DB::beginTransaction();
         try {
             #to check if id found
-            $team = Team::where('club_id',Auth::user()->club_id)->find($request->id);
-            if(!$team){
+            $team = Team::where('club_id', Auth::user()->club_id)->find($request->id);
+            if (!$team) {
                 return response()->json([
                     'status' => 'Error',
-                    'status_code'=>ResponseAlias::HTTP_NOT_FOUND,
+                    'status_code' => ResponseAlias::HTTP_NOT_FOUND,
                     'message' => 'Team id not found'
                 ], ResponseAlias::HTTP_NOT_FOUND);
             }
-            if(isset($request->player_id)) {
-                $Player = Player::where('club_id',Auth::user()->club_id)->find($request->player_id);
-                if(!$Player)
-                {
+            if (isset($request->player_id)) {
+                $Player = Player::where('club_id', Auth::user()->club_id)->find($request->player_id);
+                if (!$Player) {
                     return response()->json([
                         'status' => 'Error',
-                        'status_code'=>ResponseAlias::HTTP_NOT_FOUND,
+                        'status_code' => ResponseAlias::HTTP_NOT_FOUND,
                         'message' => 'player id not found'
                     ], ResponseAlias::HTTP_NOT_FOUND);
                 }
             }
-            if(isset($request->coach_id)) {
-                $coach = Coach::where('club_id',Auth::user()->club_id)->find($request->coach_id);
-                if(!$coach)
-                {
+            if (isset($request->coach_id)) {
+                $coach = Coach::where('club_id', Auth::user()->club_id)->find($request->coach_id);
+                if (!$coach) {
                     return response()->json([
                         'status' => 'Error',
-                        'status_code'=>ResponseAlias::HTTP_NOT_FOUND,
+                        'status_code' => ResponseAlias::HTTP_NOT_FOUND,
                         'message' => 'coach id id not found'
                     ], ResponseAlias::HTTP_NOT_FOUND);
                 }
@@ -130,27 +133,28 @@ class TeamController extends Controller
             $team->team_member = $request->team_member;
 
             //important to update player
-            if(isset($request->player_id)) {
+            if (isset($request->player_id)) {
                 $team->player()->sync($request->player_id);
             } else {
                 $team->player()->syncWithoutDetaching(array());
             }
 
             //important to update coach
-            if(isset($request->coach_id)) {
+            if (isset($request->coach_id)) {
                 $team->coach()->syncWithoutDetaching($request->coach_id);
             }
             $team->save();
             if ($request->hasfile('image_path')) {
-                $this->deleteFile('teams',$request->id);
-                $_image = $this->saveImage($request->image_path, 'attachments/teams/' .Auth::user()->club_id.'/'. $team->id);
+                $this->deleteFile('teams', $request->id);
+                $_image = $this->saveImage($request->image_path, 'attachments/teams/' . Auth::user()->club_id . '/' . $team->id);
                 $team->image_path = $_image;
                 $team->save();
+                $team->image_path = url('attachments/teams/' . $team->club_id . '/' . $team->id . '/' . $team->image_path);
             }
             DB::commit();  // insert data
 
             return response()->json([
-                'status'=>true,
+                'status' => true,
                 'data' => $team,
                 'message' => 'Team Information Updated Successfully',
             ]);
@@ -166,14 +170,16 @@ class TeamController extends Controller
     public function show(Request $request)
     {
         try {
-            $team = Team::where('club_id',Auth::user()->club_id)->find($request->id);
-            if(!$team){
+            $team = Team::where('club_id', Auth::user()->club_id)->with('club', 'player', 'coach')->find($request->id);
+            if (!$team) {
                 return response()->json([
                     'status' => 'Error',
-                    'status_code'=>ResponseAlias::HTTP_NOT_FOUND,
+                    'status_code' => ResponseAlias::HTTP_NOT_FOUND,
                     'message' => 'Team id not found'
                 ], ResponseAlias::HTTP_NOT_FOUND);
             }
+            if ($team->image_path !== null)
+                $team->image_path = url('attachments/teams/' . $team->club_id . '/' . $team->id . '/' . $team->image_path);
             return response()->json($team);
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
@@ -185,17 +191,17 @@ class TeamController extends Controller
     {
         try {
             $team = Team::find($request->id);
-            if(!$team){
+            if (!$team) {
                 return response()->json([
                     'status' => 'Error',
-                    'status_code'=>ResponseAlias::HTTP_NOT_FOUND,
+                    'status_code' => ResponseAlias::HTTP_NOT_FOUND,
                     'message' => 'Team id not found'
                 ], ResponseAlias::HTTP_NOT_FOUND);
             }
-            $this->deleteFile('teams',$request->id);
+            $this->deleteFile('teams', $request->id);
             $team->delete();
             return response()->json([
-                'status'=>true,
+                'status' => true,
                 'message' => 'Team Information deleted Successfully',
             ]);
 

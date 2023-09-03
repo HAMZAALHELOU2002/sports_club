@@ -36,6 +36,6 @@ class Tournament extends Model
     }
     public function club()
     {
-        return $this->belongsTo(Club::class, 'center_id');
+        return $this->belongsTo(Club::class);
     }
 }

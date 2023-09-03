@@ -21,7 +21,12 @@ class PlayersController extends Controller
     public function index()
     {
         $players = Player::where('club_id',Auth::user()->club_id)->get();
-        return response()->json($players);
+        $playersWithUrls = $players->map(function ($player) {
+            if ($player->image_path !== null)
+                $player->image_path = url('attachments/players/'.$player->club_id.'/'.$player->id.'/'. $player->image_path);
+            return $player;
+        });
+        return response()->json($playersWithUrls);
     }
 
 
@@ -73,6 +78,7 @@ class PlayersController extends Controller
                 $player_image = $this->saveImage($request->image_path, 'attachments/players/' .Auth::user()->club_id.'/'. $player->id);
                 $player->image_path = $player_image;
                 $player->save();
+                $player->image_path = url('attachments/players/'.$player->club_id.'/'.$player->id.'/'. $player->image_path);
             }
             DB::commit();  // insert data
         return response()->json([
@@ -98,6 +104,9 @@ class PlayersController extends Controller
                 'message' => 'player not found',
                 'data' => []
             ], ResponseAlias::HTTP_NOT_FOUND);
+        }
+        if ($player->image_path !== null){
+            $player->image_path = url('attachments/players/'.$player->club_id.'/'.$player->id.'/'. $player->image_path);
         }
         return response()->json([
             'status' => true,
@@ -155,10 +164,12 @@ class PlayersController extends Controller
             $player->player_status = $request->player_status;
 
             $player->save();
-            if ($request->hasfile('media_path')) {
+            if ($request->hasfile('image_path')) {
+                $this->deleteFile('players',$request->id);
                 $player_image = $this->saveImage($request->image_path, 'attachments/players/' .Auth::user()->club_id.'/'. $player->id);
                 $player->image_path = $player_image;
                 $player->save();
+                $player->image_path = url('attachments/players/'.$player->club_id.'/'.$player->id.'/'. $player->image_path);
             }
             DB::commit();  // insert data
             return response()->json([

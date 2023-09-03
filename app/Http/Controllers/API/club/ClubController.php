@@ -15,8 +15,9 @@ use Illuminate\Support\Facades\Validator;
 
 class ClubController extends Controller
 {
-use imageTrait;
-use GeneralTrait;
+    use imageTrait;
+    use GeneralTrait;
+
     public function index()
     {
 
@@ -49,18 +50,18 @@ use GeneralTrait;
 //                return $this->returnValidationError($code, $validator);
                 return response()->json($validator->errors(), 422);
             } else {
-                $Club=new Club();
+                $Club = new Club();
                 $Club->name = $request->name;
                 $Club->user_name = $request->user_name;
                 $Club->email = $request->email;
                 $Club->phone = $request->phone;
                 $Club->subscribes_id = $request->subscribes_id;
                 $Club->subscription_period = $request->subscription_period;
-                $Club->password =Hash::make($request->password);
+                $Club->password = Hash::make($request->password);
                 $Club->save();
 
 
-                $admin=new User();
+                $admin = new User();
                 $admin->club_id = $Club->id;
                 $admin->name = $Club->name;
                 $admin->email = $Club->email;
@@ -71,6 +72,8 @@ use GeneralTrait;
                     $club_image = $this->saveImage($request->image_path, 'attachments/club/' . $Club->id);
                     $Club->image_path = $club_image;
                     $Club->save();
+                    $Club->image_path = url('attachments/club/' . $Club->id . '/' . $Club->image_path);
+
                 }
                 DB::commit();
                 $token = auth('api')->login($admin);
@@ -83,15 +86,18 @@ use GeneralTrait;
     }
 
 
-    public function show($id)
+    public function show()
     {
-        //
-    }
+        try {
+            $user = User::find(auth()->user()->id);
+            $club = $user->club()->with('coachs', 'accountings', 'players', 'employees', 'sections', 'products', 'foods', 'tournaments')
+                ->first();
+            return response()->json($club);
 
+        } catch (\Exception $exception) {
+            return response()->json($exception->getMessage());
 
-    public function edit($id)
-    {
-        //
+        }
     }
 
 
@@ -100,56 +106,57 @@ use GeneralTrait;
         DB::beginTransaction();
         try {
             $id = Auth::user()->club_id;
-            $club =Club::find($id);
+            $club = Club::find($id);
 //            dd($club->id);
             if (!$club) {
                 return $this->returnError(404, "The requested Admin not found club_id is null");
             }
             $admin = User::where('club_id', '=', $id)->where('permission', 'admin')->get();
-            if (!$admin){
+            if (!$admin) {
                 return $this->returnError(404, "The requested Admin not found club_id is null");
             }
 //                                dd($admin);
-                $rules = [
-                    "name" => "required|string",
-                    "user_name" => "required|string",
-                    "email" => "required|email|unique:employes,email|unique:coachs,email|unique:players,email|unique:clubs,email," . $this->id,
-                    "subscribes_id" => "required|integer",
-                    "subscription_period" => "required|string",
-                    "password" => "required"
-                ];
+            $rules = [
+                "name" => "required|string",
+                "user_name" => "required|string",
+                "email" => "required|email|unique:employes,email|unique:coachs,email|unique:players,email|unique:clubs,email," . $this->id,
+                "subscribes_id" => "required|integer",
+                "subscription_period" => "required|string",
+                "password" => "required"
+            ];
 
-                $validator = Validator::make($request->all(), $rules);
+            $validator = Validator::make($request->all(), $rules);
 
-                if ($validator->fails()) {
-                    $code = $this->returnCodeAccordingToInput($validator);
-                    return $this->returnValidationError($code, $validator);
-                } else {
-                    $club->name = $request->name;
-                    $club->user_name = $request->user_name;
-                    $club->email = $request->email;
-                    $club->phone = $request->phone;
-                    $club->subscribes_id = $request->subscribes_id;
-                    $club->subscription_period = $request->subscription_period;
-                    $club->password =Hash::make($request->password);
+            if ($validator->fails()) {
+                $code = $this->returnCodeAccordingToInput($validator);
+                return $this->returnValidationError($code, $validator);
+            } else {
+                $club->name = $request->name;
+                $club->user_name = $request->user_name;
+                $club->email = $request->email;
+                $club->phone = $request->phone;
+                $club->subscribes_id = $request->subscribes_id;
+                $club->subscription_period = $request->subscription_period;
+                $club->password = Hash::make($request->password);
+                $club->save();
+                #update in table users #admin
+                $admin = User::find($club->id);
+                $admin->club_id = $club->id;
+                $admin->name = $club->name;
+                $admin->email = $club->email;
+                $admin->password = $club->password;
+                $admin->permission = 'admin';
+                $admin->save();
+                if ($request->hasfile('image_path')) {
+                    $this->deleteFile('club', $request->id);
+                    $club_image = $this->saveImage($request->image_path, 'attachments/club/' . Auth::user()->club_id);
+                    $club->image_path = $club_image;
                     $club->save();
-                   #update in table users #admin
-                    $admin = User::find($club->id);
-                    $admin->club_id = $club->id;
-                    $admin->name = $club->name;
-                    $admin->email = $club->email;
-                    $admin->password = $club->password;
-                    $admin->permission = 'admin';
-                    $admin->save();
-                    if ($request->hasfile('image_path')) {
-                        $this->deleteFile('club',$request->id);
-                        $club_image = $this->saveImage($request->image_path, 'attachments/club/' .Auth::user()->club_id);
-                        $club->image_path = $club_image;
-                        $club->save();
-                    }
-                    DB::commit();
-                    return $this->returnData('club', $club);
+                    $club->image_path = url('attachments/club/' . $club->id . '/' . $club->image_path);
                 }
+                DB::commit();
+                return $this->returnData('club', $club);
+            }
         } catch (\Exception $ex) {
             DB::rollback();
             return $this->returnError($ex->getCode(), $ex->getMessage());

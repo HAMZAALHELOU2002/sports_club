@@ -16,7 +16,6 @@ class Player extends Authenticatable implements JWTSubject
 //    protected $table='players';
     protected $guarded = [''];
 
-
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -105,7 +104,7 @@ class Player extends Authenticatable implements JWTSubject
     }
     public function club()
     {
-        return $this->belongsTo(Club::class, 'center_id');
+        return $this->belongsTo(Club::class);
     }
 }
 

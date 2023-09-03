@@ -4,6 +4,7 @@ use App\Http\Controllers\API\AccountingController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\ChampionshipLevelController;
 use App\Http\Controllers\API\ChampionshipResultController;
+use App\Http\Controllers\API\club\ClubController;
 use App\Http\Controllers\API\CoachsController;
 use App\Http\Controllers\API\DietPlanController;
 use App\Http\Controllers\API\EmployeeController;
@@ -51,8 +52,9 @@ Route::get('/login', function () {
 });
 
 Route::group(['middleware' => ['api', 'auth:api'], 'prefix' => 'v1/club'], function ($router) {
-    Route::post('add_club' ,'App\Http\Controllers\API\club\ClubController@store')->withoutMiddleware('auth:api');
-    Route::post('update', 'App\Http\Controllers\API\club\ClubController@update');
+    Route::post('add_club' ,[ClubController::class ,'store'])->withoutMiddleware('auth:api');
+    Route::post('update', [ClubController::class ,'update']);
+    Route::get('show', [ClubController::class ,'show']);
 });
 
 Route::group(['middleware' => ['api', 'auth:api'], 'prefix' => 'v1'], function ($router) {

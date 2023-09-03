@@ -21,8 +21,13 @@ class CategoryController extends Controller
     public function index()
     {
 
-        $category =Category::where('club_id',Auth::user()->club_id)->get();
-        return response()->json($category);
+        $categorys =Category::where('club_id',Auth::user()->club_id)->with('club','prof')->get();
+        $playersWithUrls = $categorys->map(function ($category) {
+            if ($category->image_path !== null)
+                $category->image_path = url('attachments/categorys/'.$category->club_id.'/'.$category->id.'/'. $category->image_path);
+            return $category;
+        });
+        return response()->json($playersWithUrls);
     }
     public function store(Request $request):  JsonResponse
     {
@@ -47,6 +52,7 @@ class CategoryController extends Controller
                 $category_image = $this->saveImage($request->image_path, 'attachments/categorys/' .Auth::user()->club_id.'/'. $category->id);
                 $category->image_path = $category_image;
                 $category->save();
+                $category->image_path = url('attachments/categorys/'.$category->club_id.'/'.$category->id.'/'. $category->image_path);
             }
             DB::commit();  // insert data
 
@@ -66,7 +72,7 @@ class CategoryController extends Controller
     public function show(Request $request)
     {
         try {
-            $category = Category::where('club_id',Auth::user()->club_id)->find($request->id);
+            $category = Category::where('club_id',Auth::user()->club_id)->with('club','prof')->find($request->id);
             if(!$category)
             {
                 return response()->json([
@@ -74,6 +80,9 @@ class CategoryController extends Controller
                     'status_code'=>ResponseAlias::HTTP_NOT_FOUND,
                     'message' => 'Category not found'
                 ], ResponseAlias::HTTP_NOT_FOUND);
+            }
+            if ($category->image_path !== null) {
+                $category->image_path = url('attachments/categorys/'.$category->club_id.'/'.$category->id.'/'. $category->image_path);
             }
             return response()->json($category);
 
@@ -114,6 +123,7 @@ class CategoryController extends Controller
                 $category_image = $this->saveImage($request->image_path, 'attachments/categorys/'.Auth::user()->club_id.'/' . $category->id);
                 $category->image_path = $category_image;
                 $category->save();
+                $category->image_path = url('attachments/categorys/'.$category->club_id.'/'.$category->id.'/'. $category->image_path);
             }
             DB::commit();  // insert data
 

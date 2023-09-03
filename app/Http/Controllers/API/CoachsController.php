@@ -21,9 +21,14 @@ class CoachsController extends Controller
     public function index()
     {
         $coachs = Coach::where('club_id',Auth::user()->club_id)->get();
+        $coachWithUrls = $coachs->map(function ($coach) {
+            if ($coach->image_path !== null)
+            $coach->image_path = url('attachments/coachs/'.$coach->club_id.'/'.$coach->id.'/'. $coach->image_path);
+            return $coach;
+        });
         return response()->json([
             'status'=>true,
-            'date' =>$coachs,
+            'date' =>$coachWithUrls,
             'message' => 'Coach Information Successfully',
         ]);
     }
@@ -67,6 +72,7 @@ class CoachsController extends Controller
                 $coach_image = $this->saveImage($request->image_path, 'attachments/coachs/' .Auth::user()->club_id.'/'. $coach->id);
                 $coach->image_path = $coach_image;
                 $coach->save();
+                $coach->image_path = url('attachments/coachs/'.$coach->club_id.'/'.$coach->id.'/'. $coach->image_path);
             }
             DB::commit();  // insert data
 
@@ -132,10 +138,10 @@ class CoachsController extends Controller
             $coach->save();
             if ($request->hasfile('image_path')) {
                 $this->deleteFile('coachs',$request->id);
-
                 $coach_image = $this->saveImage($request->image_path, 'attachments/coachs/' .Auth::user()->club_id.'/'. $coach->id);
                 $coach->image_path = $coach_image;
                 $coach->save();
+                $coach->image_path = url('attachments/coachs/'.$coach->club_id.'/'.$coach->id.'/'. $coach->image_path);
             }
             return response()->json([
                 'status'=>true,
@@ -159,6 +165,10 @@ class CoachsController extends Controller
                     'message' => 'Coach not found'
                 ], ResponseAlias::HTTP_NOT_FOUND);
             }
+            if ($coach->image_path !== null){
+                $coach->image_path = url('attachments/coachs/'.$coach->club_id.'/'.$coach->id.'/'. $coach->image_path);
+            }
+
             return response()->json($coach);
 
         } catch (\Throwable $ex) {

@@ -17,10 +17,10 @@ class CreateSectionsTable extends Migration
             $table->id();
             $table->bigInteger('club_id')->unsigned()->nullable();
             $table->foreign('club_id')->references('id')->on('clubs');
-            $table->string('name');
-            $table->string('number');
-            $table->text('section_description');
-            $table->string('department_address');
+            $table->string('name')->nullable();
+            $table->string('number')->nullable();
+            $table->text('section_description')->nullable();
+            $table->string('department_address')->nullable();
             $table->string('image_path')->nullable();
             $table->timestamps();
         });

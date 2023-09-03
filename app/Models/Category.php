@@ -9,5 +9,15 @@ class Category extends Model
 {
     use HasFactory;
     protected $guarded=[''];
+    public function prof()
+    {
+        return $this->belongsTo(Prof::class, 'prof_id', 'id');
+    }
+    public function club()
+    {
+        return $this->belongsTo(Club::class);
+
+    }
+
 
 }

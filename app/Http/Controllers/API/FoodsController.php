@@ -18,11 +18,16 @@ class FoodsController extends Controller
     use imageTrait;
     public function index()
     {
-        $foods = Food::where('club_id',Auth::user()->club_id)->get();
+        $foods = Food::where('club_id',Auth::user()->club_id)->with('foodsystem','club')->get();
+        $playersWithUrls = $foods->map(function ($food) {
+            if ($food->image_path !== null)
+                $food->image_path = url('attachments/foods/'.$food->club_id.'/'.$food->id.'/'. $food->image_path);
+            return $food;
+        });
         return response()->json([
             'status' => 'successfully',
             'status_code'=>ResponseAlias::HTTP_OK,
-            'data' => $foods ?:[]
+            'data' => $playersWithUrls ?:[]
         ], ResponseAlias::HTTP_OK);
     }
 
@@ -47,6 +52,7 @@ class FoodsController extends Controller
                 $_image = $this->saveImage($request->image_path, 'attachments/foods/' .Auth::user()->club_id.'/'. $food->id);
                 $food->image_path = $_image;
                 $food->save();
+                $food->image_path = url('attachments/foods/'.$food->club_id.'/'.$food->id.'/'. $food->image_path);
             }
             DB::commit();  // insert data
             return response()->json([
@@ -71,6 +77,9 @@ class FoodsController extends Controller
                 'message' => 'food not found',
             ], ResponseAlias::HTTP_NOT_FOUND);
         }
+        if ($food->image_path !== null)
+        $food->image_path = url('attachments/foods/'.$food->club_id.'/'.$food->id.'/'. $food->image_path);
+
         return response()->json([
             'status' => true,
             'data' => $food
@@ -107,6 +116,8 @@ class FoodsController extends Controller
                 $_image = $this->saveImage($request->image_path, 'attachments/foods/'.Auth::user()->club_id.'/' . $food->id);
                 $food->image_path = $_image;
                 $food->save();
+                $food->image_path = url('attachments/foods/'.$food->club_id.'/'.$food->id.'/'. $food->image_path);
+
             }
             DB::commit();  // insert data
             return response()->json([

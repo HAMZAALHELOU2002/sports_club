@@ -16,19 +16,26 @@ use Symfony\Component\HttpFoundation\Response as ResponseAlias;
 
 class AccountingController extends Controller
 {
-use GeneralTrait;
-use imageTrait;
+    use GeneralTrait;
+    use imageTrait;
+
     public function index()
     {
-        $accountings = Accounting::where('club_id',Auth::user()->club_id)->get();
-        return response()->json($accountings);
+        $accountings = Accounting::where('club_id', Auth::user()->club_id)->with('club', 'subtype', 'Payments_trainees', 'coach', 'player')->get();
+
+        $playersWithUrls = $accountings->map(function ($accounting) {
+            if ($accounting->image_path !== null)
+                $accounting->image_path = url('attachments/accountings/' . $accounting->club_id . '/' . $accounting->id . '/' . $accounting->image_path);
+            return $accounting;
+        });
+        return response()->json($playersWithUrls);
     }
 
     public function store(StoreAccountingRequest $request)
     {
         DB::beginTransaction();
         try {
-            if(isset($request->coach_id)) {
+            if (isset($request->coach_id)) {
                 $couch = Coach::where('club_id', Auth::user()->club_id)->find($request->coach_id);
                 if (!$couch) {
                     return response()->json([
@@ -39,7 +46,7 @@ use imageTrait;
                     ], ResponseAlias::HTTP_NOT_FOUND);
                 }
             }
-            if(isset($request->player_id)) {
+            if (isset($request->player_id)) {
                 $player = Player::where('club_id', Auth::user()->club_id)->find($request->player_id);
                 if (!$player) {
                     return response()->json([
@@ -50,7 +57,7 @@ use imageTrait;
                     ], ResponseAlias::HTTP_NOT_FOUND);
                 }
             }
-            if(isset($request->employee_id)) {
+            if (isset($request->employee_id)) {
                 $employee = Player::where('club_id', Auth::user()->club_id)->find($request->employee_id);
                 if (!$employee) {
                     return response()->json([
@@ -75,9 +82,11 @@ use imageTrait;
             $accounting->tax = $request->tax;
             $accounting->save();
             if ($request->hasfile('image_path')) {
-                $_image = $this->saveImage($request->image_path, 'attachments/accountings/'.Auth::user()->club_id.'/'. $accounting->id);
+                $_image = $this->saveImage($request->image_path, 'attachments/accountings/' . Auth::user()->club_id . '/' . $accounting->id);
                 $accounting->image_path = $_image;
                 $accounting->save();
+                $accounting->image_path = url('attachments/accountings/' . $accounting->club_id . '/' . $accounting->id . '/' . $accounting->image_path);
+
             }
             DB::commit();  // insert data
             return response()->json([
@@ -94,14 +103,17 @@ use imageTrait;
 
     public function show(Request $request)
     {
-        $accounting= Accounting::where('club_id',Auth::user()->club_id)->find($request->id);
+        $accounting = Accounting::where('club_id', Auth::user()->club_id)->with('club', 'subtype', 'coach', 'player')->find($request->id);
         if (!$accounting) {
             return response()->json([
                 'status' => 'Error',
-                'status_code'=>ResponseAlias::HTTP_NOT_FOUND,
+                'status_code' => ResponseAlias::HTTP_NOT_FOUND,
                 'message' => 'accounting not found',
             ], ResponseAlias::HTTP_NOT_FOUND);
         }
+        if ($accounting->image_path !== null)
+            $accounting->image_path = url('attachments/accountings/' . $accounting->club_id . '/' . $accounting->id . '/' . $accounting->image_path);
+
         return response()->json([
             'status' => true,
             'data' => $accounting
@@ -112,7 +124,7 @@ use imageTrait;
     {
         DB::beginTransaction();
         try {
-            if(isset($request->coach_id)) {
+            if (isset($request->coach_id)) {
                 $couch = Coach::where('club_id', Auth::user()->club_id)->find($request->coach_id);
                 if (!$couch) {
                     return response()->json([
@@ -123,7 +135,7 @@ use imageTrait;
                     ], ResponseAlias::HTTP_NOT_FOUND);
                 }
             }
-            if(isset($request->player_id)) {
+            if (isset($request->player_id)) {
                 $player = Player::where('club_id', Auth::user()->club_id)->find($request->player_id);
                 if (!$player) {
                     return response()->json([
@@ -134,11 +146,11 @@ use imageTrait;
                     ], ResponseAlias::HTTP_NOT_FOUND);
                 }
             }
-            $accounting = Accounting::where('club_id',Auth::user()->club_id)->find($request->id);
+            $accounting = Accounting::where('club_id', Auth::user()->club_id)->find($request->id);
             if (!$accounting) {
                 return response()->json([
                     'status' => 'Error',
-                    'status_code'=>ResponseAlias::HTTP_NOT_FOUND,
+                    'status_code' => ResponseAlias::HTTP_NOT_FOUND,
                     'message' => 'accounting not found',
                     'data' => []
                 ], ResponseAlias::HTTP_NOT_FOUND);
@@ -157,10 +169,12 @@ use imageTrait;
             $accounting->tax = $request->tax;
             $accounting->save();
             if ($request->hasfile('image_path')) {
-                $this->deleteFile('accountings',$request->id);
-                $_image = $this->saveImage($request->image_path, 'attachments/accountings/' .Auth::user()->club_id.'/'. $accounting->id);
+                $this->deleteFile('accountings', $request->id);
+                $_image = $this->saveImage($request->image_path, 'attachments/accountings/' . Auth::user()->club_id . '/' . $accounting->id);
                 $accounting->image_path = $_image;
                 $accounting->save();
+                $accounting->image_path = url('attachments/accountings/' . $accounting->club_id . '/' . $accounting->id . '/' . $accounting->image_path);
+
             }
             DB::commit();  // insert data
             return response()->json([
@@ -178,16 +192,16 @@ use imageTrait;
 
     public function destroy(Request $request)
     {
-        $accounting= Accounting::where('club_id',Auth::user()->club_id)->find($request->id);
+        $accounting = Accounting::where('club_id', Auth::user()->club_id)->find($request->id);
         if (!$accounting) {
             return response()->json([
                 'status' => 'Error',
-                'status_code'=>ResponseAlias::HTTP_NOT_FOUND,
+                'status_code' => ResponseAlias::HTTP_NOT_FOUND,
                 'message' => 'accounting not found',
                 'data' => []
             ], ResponseAlias::HTTP_NOT_FOUND);
         }
-        $this->deleteFile('accountings',$request->id);
+        $this->deleteFile('accountings', $request->id);
         $accounting->delete();
         return response()->json([
             'status' => true,
