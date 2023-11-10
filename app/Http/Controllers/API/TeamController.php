@@ -71,7 +71,6 @@ class TeamController extends Controller
             }
             //important to update player
             if (isset($request->player_id)) {
-//            dd("hgyhg");
                 $team->player()->syncWithoutDetaching($request->player_id);
             }
             //important to update coach

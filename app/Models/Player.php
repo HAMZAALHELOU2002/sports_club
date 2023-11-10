@@ -106,6 +106,16 @@ class Player extends Authenticatable implements JWTSubject
     {
         return $this->belongsTo(Club::class);
     }
+
+    public function training()
+    {
+        return $this->belongsToMany(Training::class, 'player_trainings', 'player_id', 'training_id');
+    }
+
+    public function food()
+    {
+        return $this->belongsToMany(Food::class, 'player_food', 'player_id', 'food_id');
+    }
 }
 
 

@@ -19,8 +19,16 @@ use GeneralTrait;
 use imageTrait;
     public function index()
     {
-        $trainings = Training::where('club_id',Auth::user()->club_id)->get();
-        return response()->json($trainings);
+        $trainings = Training::where('club_id',Auth::user()->club_id)->with('player')->get();
+        $trainingWithUrls = $trainings->map(function ($trainings) {
+            if ($trainings->image_path !==null){
+                $trainings->image_path = url('attachments/trainings/'.Auth::user()->club_id.'/'.$trainings->id .'/'. $trainings->image_path);
+            }else{
+                $trainings->image_path = url('attachments/demo/demo1.jpg');
+            }
+            return $trainings;
+        });
+        return response()->json($trainingWithUrls);
     }
 
     public function store(StoreTrainininRequest $request)
@@ -41,6 +49,12 @@ use imageTrait;
                 $_image = $this->saveImage($request->image_path, 'attachments/trainings/'.Auth::user()->club_id.'/'. $training->id);
                 $training->image_path = $_image;
                 $training->save();
+                $training->image_path = url('attachments/trainings/'.Auth::user()->club_id.'/'.$training->id .'/'. $training->image_path);
+
+            }
+
+            if (isset($request->player_id)) {
+                $training->player()->syncWithoutDetaching($request->player_id);
             }
             return response()->json([
                 'status' => true,
@@ -97,6 +111,11 @@ use imageTrait;
                 $training->image_path = $_image;
                 $training->save();
             }
+
+            if (isset($request->player_id)) {
+                $training->player()->syncWithoutDetaching($request->player_id);
+            }
+
             return response()->json([
                 'status' => true,
                 'date' => $training,

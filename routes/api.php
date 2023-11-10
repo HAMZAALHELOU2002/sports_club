@@ -51,13 +51,13 @@ Route::get('/login', function () {
     echo 'some thing went wrong';
 });
 
-Route::group(['middleware' => ['api', 'auth:api'], 'prefix' => 'v1/club'], function ($router) {
+Route::group(['middleware' => ['auth:api'], 'prefix' => 'v1/club'], function ($router) {
     Route::post('add_club' ,[ClubController::class ,'store'])->withoutMiddleware('auth:api');
     Route::post('update', [ClubController::class ,'update']);
     Route::get('show', [ClubController::class ,'show']);
 });
 
-Route::group(['middleware' => ['api', 'auth:api'], 'prefix' => 'v1'], function ($router) {
+Route::group(['middleware' => ['auth:api'], 'prefix' => 'v1'], function ($router) {
     Route::post('login/admin' ,'App\Http\Controllers\API\AuthController@login')->withoutMiddleware('auth:api');
     Route::post('logout/admin', 'App\Http\Controllers\API\AuthController@logout');
     Route::post('refresh/admin', 'App\Http\Controllers\API\AuthController@refresh');
@@ -69,7 +69,7 @@ Route::group(['middleware' => ['api', 'auth:api'], 'prefix' => 'v1'], function (
 
 
 
-Route::group(['middleware' => ['api','auth:api'],'prefix'=>'v1' ,'namspace'=>'API'], function()
+Route::group(['middleware' => ['auth:api'],'prefix'=>'v1' ,'namspace'=>'API'], function()
 {
     #seeder Show
     Route::get('location',[LocationController::class ,'index'])->withoutMiddleware('auth:api');
@@ -214,7 +214,7 @@ Route::group(['middleware' => ['api','auth:api'],'prefix'=>'v1' ,'namspace'=>'AP
 );
 
 
-Route::group(['middleware' => ['api', 'auth:api_player'], 'prefix' => 'v1'], function ($router) {
+Route::group(['middleware' => [ 'auth:api_player'], 'prefix' => 'v1'], function ($router) {
 
     Route::post('login/player', 'App\Http\Controllers\API\player\PlayerController@login')->withoutMiddleware('auth:api_player');
     Route::post('register/player', 'App\Http\Controllers\API\player\PlayerController@register')->withoutMiddleware('auth:api_player');
@@ -225,7 +225,7 @@ Route::group(['middleware' => ['api', 'auth:api_player'], 'prefix' => 'v1'], fun
     Route::post('password/reset/player', 'App\Http\Controllers\API\player\PlayerController@reset')->withoutMiddleware('auth:api_player');
 });
 
-Route::group(['middleware' => ['api', 'auth:api_coach'], 'prefix' => 'v1'], function ($router) {
+Route::group(['middleware' => ['auth:api_coach'], 'prefix' => 'v1'], function ($router) {
 
     Route::post('login/coach', 'App\Http\Controllers\API\coach\CoachController@login')->withoutMiddleware('auth:api_coach');;
     Route::post('register/coach', 'App\Http\Controllers\API\coach\CoachController@register')->withoutMiddleware('auth:api_coach');

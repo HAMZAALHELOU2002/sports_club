@@ -20,7 +20,7 @@ class PlayersController extends Controller
     use imageTrait;
     public function index()
     {
-        $players = Player::where('club_id',Auth::user()->club_id)->get();
+        $players = Player::where('club_id',Auth::user()->club_id)->with('training','food')->get();
         $playersWithUrls = $players->map(function ($player) {
             if ($player->image_path !== null)
                 $player->image_path = url('attachments/players/'.$player->club_id.'/'.$player->id.'/'. $player->image_path);
@@ -80,6 +80,14 @@ class PlayersController extends Controller
                 $player->save();
                 $player->image_path = url('attachments/players/'.$player->club_id.'/'.$player->id.'/'. $player->image_path);
             }
+
+            if (isset($request->training_id)) {
+                $player->training()->syncWithoutDetaching($request->training_id);
+            }
+
+            if (isset($request->food_id)) {
+                $player->food()->syncWithoutDetaching($request->food_id);
+            }
             DB::commit();  // insert data
         return response()->json([
             'status' => true,
@@ -96,7 +104,7 @@ class PlayersController extends Controller
 
     public function show(Request $request)
     {
-        $player= Player::where('club_id',Auth::user()->club_id)->find($request->id);
+        $player= Player::where('club_id',Auth::user()->club_id)->with('training','food')->find($request->id);
         if (!$player) {
             return response()->json([
                 'status' => 'Error',
@@ -170,6 +178,13 @@ class PlayersController extends Controller
                 $player->image_path = $player_image;
                 $player->save();
                 $player->image_path = url('attachments/players/'.$player->club_id.'/'.$player->id.'/'. $player->image_path);
+            }
+            if (isset($request->training_id)) {
+                $player->training()->syncWithoutDetaching($request->training_id);
+            }
+
+            if (isset($request->food_id)) {
+                $player->food()->syncWithoutDetaching($request->food_id);
             }
             DB::commit();  // insert data
             return response()->json([

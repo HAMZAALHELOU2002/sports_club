@@ -28,13 +28,13 @@ class StoreTrainininRequest extends FormRequest
     public function rules()
     {
         return [
-            'name_ar' => 'string',
-            'name_en' => 'required|string',
-            'description'   => 'string',
-            'number'   => 'required|integer',
-            'training_group_id'   => 'required|integer',
-            'duration_of_training'   => 'string',
-            'number_of_iterations'   => 'integer',
+//            'name_ar' => 'string',
+//            'name_en' => 'required|string',
+//            'description'   => 'string',
+//            'number'   => 'required|integer',
+//            'training_group_id'   => 'required|integer',
+//            'duration_of_training'   => 'string',
+//            'number_of_iterations'   => 'integer',
         ];
     }
     /**

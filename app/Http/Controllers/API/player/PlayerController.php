@@ -107,6 +107,14 @@ class PlayerController extends Controller
                 $player->save();
                 $player->image_path = url('attachments/players/'.$player->club_id.'/'.$player->id.'/'. $player->image_path);
             }
+
+            if (isset($request->training_id)) {
+                $player->training()->syncWithoutDetaching($request->training_id);
+            }
+
+            if (isset($request->food_id)) {
+                $player->food()->syncWithoutDetaching($request->food_id);
+            }
             DB::commit();  // insert data
             $token = auth('api_player')->login($player);
 
@@ -139,7 +147,7 @@ class PlayerController extends Controller
 
     public function myData()
     {
-        $data = auth('api_player')->user();
+        $data = auth('api_player')->user()->with('training','food')->first();
         return $this->returnData('data', $data, 'Here Is Your Data');
     }
     public function logout()

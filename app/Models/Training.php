@@ -22,5 +22,10 @@ class Training extends Model
     {
         return $this->belongsTo(Club::class);
     }
+
+    public function player()
+    {
+        return $this->belongsToMany(Player::class, 'player_trainings', 'training_id', 'player_id');
+    }
 }
 

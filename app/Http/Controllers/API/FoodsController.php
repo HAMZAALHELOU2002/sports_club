@@ -18,7 +18,7 @@ class FoodsController extends Controller
     use imageTrait;
     public function index()
     {
-        $foods = Food::where('club_id',Auth::user()->club_id)->with('foodsystem','club')->get();
+        $foods = Food::where('club_id',Auth::user()->club_id)->with('foodsystem','club','player')->get();
         $playersWithUrls = $foods->map(function ($food) {
             if ($food->image_path !== null)
                 $food->image_path = url('attachments/foods/'.$food->club_id.'/'.$food->id.'/'. $food->image_path);
@@ -54,6 +54,9 @@ class FoodsController extends Controller
                 $food->save();
                 $food->image_path = url('attachments/foods/'.$food->club_id.'/'.$food->id.'/'. $food->image_path);
             }
+            if (isset($request->player_id)) {
+                $food->player()->syncWithoutDetaching($request->player_id);
+            }
             DB::commit();  // insert data
             return response()->json([
                 'status' => true,
@@ -69,7 +72,7 @@ class FoodsController extends Controller
 
     public function show(Request $request)
     {
-        $food= Food::where('club_id',Auth::user()->club_id)->find($request->id);
+        $food= Food::where('club_id',Auth::user()->club_id)->with('player')->find($request->id);
         if (!$food) {
             return response()->json([
                 'status' => 'Error',
@@ -118,6 +121,9 @@ class FoodsController extends Controller
                 $food->save();
                 $food->image_path = url('attachments/foods/'.$food->club_id.'/'.$food->id.'/'. $food->image_path);
 
+            }
+            if (isset($request->player_id)) {
+                $food->player()->syncWithoutDetaching($request->player_id);
             }
             DB::commit();  // insert data
             return response()->json([

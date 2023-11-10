@@ -23,4 +23,10 @@ class Food extends Model
     {
         return $this->belongsTo(Club::class);
     }
+
+    public function player()
+    {
+        return $this->belongsToMany(Player::class, 'player_food', 'food_id', 'player_id');
+    }
+
 }
