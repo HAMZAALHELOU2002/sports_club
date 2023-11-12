@@ -20,7 +20,7 @@ class CoachsController extends Controller
 
     public function index()
     {
-        $coachs = Coach::where('club_id',Auth::user()->club_id)->get();
+        $coachs = Coach::where('club_id',Auth::user()->club_id)->with('tournament','team','gender','nationality','products')->get();
         $coachWithUrls = $coachs->map(function ($coach) {
             if ($coach->image_path !== null)
             $coach->image_path = url('attachments/coachs/'.$coach->club_id.'/'.$coach->id.'/'. $coach->image_path);
@@ -73,6 +73,9 @@ class CoachsController extends Controller
                 $coach->image_path = $coach_image;
                 $coach->save();
                 $coach->image_path = url('attachments/coachs/'.$coach->club_id.'/'.$coach->id.'/'. $coach->image_path);
+            }
+            if (isset($request->product_id)) {
+                $coach->products()->syncWithoutDetaching($request->product_id);
             }
             DB::commit();  // insert data
 
@@ -156,7 +159,7 @@ class CoachsController extends Controller
     public function show(Request $request)
     {
         try {
-            $coach = Coach::where('club_id',Auth::user()->club_id)->find($request->id);
+            $coach = Coach::where('club_id',Auth::user()->club_id)->with('tournament','team','gender','nationality','products')->find($request->id);
             if(!$coach)
             {
                 return response()->json([

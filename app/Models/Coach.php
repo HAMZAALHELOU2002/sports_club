@@ -70,12 +70,17 @@ class Coach extends Authenticatable implements JWTSubject
 
     public function team()
     {
-        return $this->belongsToMany(Team::class, 'player_has_team', 'coach_id', 'team_id');
+        return $this->belongsToMany(Team::class, 'coach_has_team', 'coach_id', 'team_id');
     }
     public function tournament()
     {
-        return $this->belongsToMany(Tournament::class, 'player_has_tournament', 'coach_id', 'tournament_id');
+        return $this->belongsToMany(Tournament::class, 'coach_has_tournament', 'coach_id', 'tournament_id');
     }
 
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'coach_products', 'coach_id', 'product_id');
+    }
 }
 

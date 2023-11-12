@@ -116,6 +116,11 @@ class Player extends Authenticatable implements JWTSubject
     {
         return $this->belongsToMany(Food::class, 'player_food', 'player_id', 'food_id');
     }
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'player_products', 'player_id', 'product_id');
+    }
+
 }
 
 

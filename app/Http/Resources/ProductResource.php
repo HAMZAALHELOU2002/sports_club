@@ -21,6 +21,8 @@ class ProductResource extends JsonResource
             'club' => $this->club,
             'product_types_id' =>  $this->productType,
             'images'=>ImagesProductResource::collection($this->images)
+            ,'players'=>$this->players
+            ,'coachs'=>$this->coachs
         ];
     }
 }

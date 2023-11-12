@@ -66,6 +66,13 @@ class ProductController extends Controller
                 }
             }
 
+            if (isset($request->player_id)) {
+                $product->players()->syncWithoutDetaching($request->player_id);
+            }
+
+            if (isset($request->coach_id)) {
+                $product->coachs()->syncWithoutDetaching($request->coach_id);
+            }
             DB::commit();  // insert data
             return response()->json([
                 'status'=>true,
@@ -119,6 +126,13 @@ class ProductController extends Controller
                     $images->imageable_type = 'App\Models\Product';
                     $images->save();
                 }
+            }
+            if (isset($request->player_id)) {
+                $product->players()->syncWithoutDetaching($request->player_id);
+            }
+
+            if (isset($request->coach_id)) {
+                $product->coachs()->syncWithoutDetaching($request->coach_id);
             }
 
             DB::commit();  // insert data

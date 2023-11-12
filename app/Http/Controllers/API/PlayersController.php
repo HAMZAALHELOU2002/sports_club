@@ -20,7 +20,7 @@ class PlayersController extends Controller
     use imageTrait;
     public function index()
     {
-        $players = Player::where('club_id',Auth::user()->club_id)->with('training','food')->get();
+        $players = Player::where('club_id',Auth::user()->club_id)->with('training','food','products')->get();
         $playersWithUrls = $players->map(function ($player) {
             if ($player->image_path !== null)
                 $player->image_path = url('attachments/players/'.$player->club_id.'/'.$player->id.'/'. $player->image_path);
@@ -88,6 +88,10 @@ class PlayersController extends Controller
             if (isset($request->food_id)) {
                 $player->food()->syncWithoutDetaching($request->food_id);
             }
+
+            if (isset($request->product_id)) {
+                $player->products()->syncWithoutDetaching($request->product_id);
+            }
             DB::commit();  // insert data
         return response()->json([
             'status' => true,
@@ -104,7 +108,7 @@ class PlayersController extends Controller
 
     public function show(Request $request)
     {
-        $player= Player::where('club_id',Auth::user()->club_id)->with('training','food')->find($request->id);
+        $player= Player::where('club_id',Auth::user()->club_id)->with('training','food','products')->find($request->id);
         if (!$player) {
             return response()->json([
                 'status' => 'Error',

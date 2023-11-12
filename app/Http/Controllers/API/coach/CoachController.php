@@ -91,6 +91,9 @@ class CoachController extends Controller
                 $coach->save();
                 $coach->image_path = url('attachments/coachs/'.$coach->club_id.'/'.$coach->id.'/'. $coach->image_path);
             }
+            if (isset($request->product_id)) {
+                $coach->products()->syncWithoutDetaching($request->product_id);
+            }
             DB::commit();  // insert data
             $token = auth('api_coach')->login($coach);
 
@@ -169,7 +172,7 @@ class CoachController extends Controller
 
     public function myData()
     {
-        $data = auth('api_coach')->user();
+        $data = auth('api_coach')->user()->with('tournament','team','gender','nationality','products')->first();
         return $this->returnData('data', $data, 'Here Is Your Data');
     }
     public function logout()

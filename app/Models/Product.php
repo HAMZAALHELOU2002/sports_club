@@ -29,4 +29,13 @@ class Product extends Model
         return $this->morphMany('App\Models\Image', 'imageable');
     }
 
+    public function players()
+    {
+        return $this->belongsToMany(Player::class, 'player_products', 'product_id', 'player_id');
+    }
+
+    public function coachs()
+    {
+        return $this->belongsToMany(Coach::class, 'coach_products', 'product_id', 'coach_id');
+    }
 }

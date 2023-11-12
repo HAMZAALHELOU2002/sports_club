@@ -115,6 +115,10 @@ class PlayerController extends Controller
             if (isset($request->food_id)) {
                 $player->food()->syncWithoutDetaching($request->food_id);
             }
+
+            if (isset($request->product_id)) {
+                $player->products()->syncWithoutDetaching($request->product_id);
+            }
             DB::commit();  // insert data
             $token = auth('api_player')->login($player);
 
@@ -147,7 +151,7 @@ class PlayerController extends Controller
 
     public function myData()
     {
-        $data = auth('api_player')->user()->with('training','food')->first();
+        $data = auth('api_player')->user()->with('training','food','team','profs_degree','products')->first();
         return $this->returnData('data', $data, 'Here Is Your Data');
     }
     public function logout()
