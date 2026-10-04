@@ -22,14 +22,3 @@
 * **Back-End:** PHP 8.x / Laravel Framework
 * **Front-End:** Blade Templates, HTML5, CSS3, JavaScript, Bootstrap
 * **Database:** MySQL
-
----
-
-## 🚀 طريقة التثبيت والتشغيل (Installation & Setup)
-
-اتبع الخطوات التالية لتشغيل المشروع على جهازك المحلي:
-
-1. **استنساخ المستودع (Clone the repository):**
-   ```bash
-   git clone [https://github.com/HAMZAALHELOU2002/sport-club.git](https://github.com/HAMZAALHELOU2002/sport-club.git)
-   cd sport-club
